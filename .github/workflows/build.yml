@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18]
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -24,20 +25,23 @@ jobs:
         sudo apt update
         sudo apt install -y python3 make g++ gcc libc6-dev-armhf-cross g++-arm-linux-gnueabihf
 
-    - name: Setup npm packages
-      run: npm install node-gyp
+    - name: Install Node-gyp Globally
+      run: npm install -g node-gyp
+
+    - name: Install npm packages
+      run: npm ci
 
     - name: Configure Node-gyp for ARM32
-      run: |
-        export CC=arm-linux-gnueabihf-gcc
-        export CXX=arm-linux-gnueabihf-g++
-        node-gyp configure --arch=arm
+      env:
+        CC: arm-linux-gnueabihf-gcc
+        CXX: arm-linux-gnueabihf-g++
+      run: node-gyp configure --arch=arm
 
     - name: Build Addon
-      run: |
-        export CC=arm-linux-gnueabihf-gcc
-        export CXX=arm-linux-gnueabihf-g++
-        node-gyp build
+      env:
+        CC: arm-linux-gnueabihf-gcc
+        CXX: arm-linux-gnueabihf-g++
+      run: node-gyp build
 
     - name: Upload ARM32 Build
       uses: actions/upload-artifact@v4
