@@ -34,11 +34,17 @@ jobs:
     - name: Install Node-gyp Globally
       run: npm install -g node-gyp
 
-    - name: Build Node.js headers for ARM32
+    - name: Build Node.js headers for Android ARM32
       run: |
         git clone https://github.com/nodejs/node.git
         cd node
-        ./configure --without-snapshot --dest-cpu=arm --prefix=$HOME/node-android
+        ./configure \
+          --without-snapshot \
+          --dest-cpu=arm \
+          --dest-os=android \
+          --cross-compiling \
+          --openssl-no-asm \
+          --prefix=$HOME/node-android
         make -j4
         make install
       shell: bash
