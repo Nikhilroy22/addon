@@ -28,8 +28,7 @@ jobs:
     - name: Install Node-gyp Globally
       run: npm install -g node-gyp
 
-    - name: Install npm packages
-      run: npm ci
+
 
     - name: Configure Node-gyp for ARM32
       env:
