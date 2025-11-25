@@ -12,7 +12,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt update
-        sudo apt install -y python3 g++ make ninja-build unzip pkg-config git wget
+        sudo apt install -y python3 g++ make ninja-build unzip pkg-config git wget curl
 
     - name: Clone Node.js source
       run: |
@@ -39,16 +39,15 @@ jobs:
         export host_os=linux
         export target_arch=arm
         export ANDROID_NDK_ROOT=$PWD/ndk
-        export GYP_DEFINES="host_os=linux target_arch=arm node_no_cares=1 android_ndk_path=$PWD/ndk"
+        export GYP_DEFINES="host_os=linux target_arch=arm android_ndk_path=$PWD/ndk"
 
     - name: Configure Node.js
       run: |
         cd node
-        # Export variables in this step so configure sees them
         export host_os=linux
         export target_arch=arm
         export ANDROID_NDK_ROOT=$PWD/../ndk
-        export GYP_DEFINES="host_os=linux target_arch=arm node_no_cares=1 android_ndk_path=$PWD/../ndk"
+        export GYP_DEFINES="host_os=linux target_arch=arm android_ndk_path=$PWD/../ndk"
 
         ./configure \
           --dest-cpu=arm \
@@ -56,12 +55,17 @@ jobs:
           --cross-compiling \
           --openssl-no-asm \
           --without-intl \
-          --prefix=/output
+          --shared-cares \
+          --shared-openssl \
+          --shared-sqlite \
+          --shared-zlib \
+          --with-intl=system-icu \
+          --ninja
 
     - name: Build Node.js
       run: |
         cd node
-        make -j4
+        ninja -C out/Release node
 
     - name: Package result
       run: |
