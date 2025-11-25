@@ -34,21 +34,6 @@ jobs:
     - name: Install Node-gyp Globally
       run: npm install -g node-gyp
 
-    - name: Build Node.js headers for Android ARM32
-      run: |
-        git clone https://github.com/nodejs/node.git
-        cd node
-        ./configure \
-          --without-snapshot \
-          --dest-cpu=arm \
-          --dest-os=android \
-          --cross-compiling \
-          --openssl-no-asm \
-          --prefix=$HOME/node-android
-        make -j4
-        make install
-      shell: bash
-
     - name: Configure Node-gyp for Android ARM32
       env:
         ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
@@ -56,11 +41,10 @@ jobs:
         CXX: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang++
         AR: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ar
       run: |
-        node-gyp configure --arch=arm --nodedir=$HOME/node-android
+        node-gyp configure --arch=arm --nodedir=./node-headers
 
     - name: Build Addon
       env:
-        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
         CC: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
         CXX: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang++
         AR: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ar
