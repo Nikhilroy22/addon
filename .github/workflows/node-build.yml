@@ -30,11 +30,11 @@ jobs:
       run: |
         export TOOLCHAIN=$PWD/ndk/toolchains/llvm/prebuilt/linux-x86_64
         echo "TOOLCHAIN=$TOOLCHAIN" >> $GITHUB_ENV
-        
+
         echo "AR=$TOOLCHAIN/bin/llvm-ar" >> $GITHUB_ENV
         echo "CC=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang" >> $GITHUB_ENV
         echo "CXX=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang++" >> $GITHUB_ENV
-        
+
         # V8/GYP required variables
         export host_os=linux
         export target_arch=arm
