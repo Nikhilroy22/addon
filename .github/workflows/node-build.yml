@@ -18,7 +18,7 @@ jobs:
       run: |
         git clone https://github.com/nodejs/node.git
         cd node
-        git checkout v20.12.2
+        git checkout v24.9.0
 
     - name: Download Android NDK
       run: |
