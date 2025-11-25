@@ -1,11 +1,11 @@
-name: Build ARM32 Node.js Addon
+name: Build Android ARM32 Node.js Addon
 
 on:
   push:
     branches: [main]
 
 jobs:
-  build-arm32:
+  build-android-arm32:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,27 +23,45 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt update
-        sudo apt install -y python3 make g++ gcc libc6-dev-armhf-cross g++-arm-linux-gnueabihf
+        sudo apt install -y python3 make cmake unzip curl git
+
+    - name: Download Android NDK
+      run: |
+        wget https://dl.google.com/android/repository/android-ndk-r26b-linux.zip
+        unzip android-ndk-r26b-linux.zip
+        echo "ANDROID_NDK_HOME=$PWD/android-ndk-r26b" >> $GITHUB_ENV
 
     - name: Install Node-gyp Globally
       run: npm install -g node-gyp
 
+    - name: Build Node.js headers for ARM32
+      run: |
+        git clone https://github.com/nodejs/node.git
+        cd node
+        ./configure --without-snapshot --dest-cpu=arm --prefix=$HOME/node-android
+        make -j4
+        make install
+      shell: bash
 
-
-    - name: Configure Node-gyp for ARM32
+    - name: Configure Node-gyp for Android ARM32
       env:
-        CC: arm-linux-gnueabihf-gcc
-        CXX: arm-linux-gnueabihf-g++
-      run: node-gyp configure --arch=arm
+        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        CC: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
+        CXX: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang++
+        AR: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ar
+      run: |
+        node-gyp configure --arch=arm --nodedir=$HOME/node-android
 
     - name: Build Addon
       env:
-        CC: arm-linux-gnueabihf-gcc
-        CXX: arm-linux-gnueabihf-g++
+        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        CC: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang
+        CXX: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi21-clang++
+        AR: ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ar
       run: node-gyp build
 
-    - name: Upload ARM32 Build
+    - name: Upload ARM32 Android Build
       uses: actions/upload-artifact@v4
       with:
-        name: addon-arm32
+        name: addon-android-arm32
         path: build/Release/addon.node
