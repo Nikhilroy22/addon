@@ -56,6 +56,7 @@ jobs:
           --cross-compiling \
           --openssl-no-asm \
           --without-intl \
+          --without-cares \
           --prefix=/output
 
     - name: Build Node.js
@@ -74,16 +75,3 @@ jobs:
       with:
         name: node-android-arm32
         path: node-android-arm32.tar.gz
-
-    - name: Commit & Push build artifact to main
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout main
-        mkdir -p build
-        mv node-android-arm32.tar.gz build/
-        git add build/node-android-arm32.tar.gz
-        git commit -m "Add Android ARM32 Node.js build artifact"
-        git push origin main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
