@@ -15,10 +15,9 @@ jobs:
 
     - name: Clone Node.js source
       run: |
-        # কোন version চাইলে এখানে সেট করুন
         git clone https://github.com/nodejs/node.git
         cd node
-        git checkout v20.12.2   # আপনার প্রয়োজন অনুযায়ী পরিবর্তন করুন
+        git checkout v20.12.2
 
     - name: Download Android NDK
       run: |
@@ -26,13 +25,20 @@ jobs:
         unzip android-ndk-r26d-linux.zip
         mv android-ndk-r26d ndk
 
-    - name: Set NDK Toolchain
+    - name: Set NDK Toolchain & GYP Vars
       run: |
         export TOOLCHAIN=$PWD/ndk/toolchains/llvm/prebuilt/linux-x86_64
         echo "TOOLCHAIN=$TOOLCHAIN" >> $GITHUB_ENV
+        
         echo "AR=$TOOLCHAIN/bin/llvm-ar" >> $GITHUB_ENV
         echo "CC=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang" >> $GITHUB_ENV
         echo "CXX=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang++" >> $GITHUB_ENV
+
+        # Android NDK Path Fix (your error)
+        export ANDROID_NDK_ROOT=$PWD/ndk
+        echo "ANDROID_NDK_ROOT=$PWD/ndk" >> $GITHUB_ENV
+
+        echo "GYP_DEFINES=android_ndk_path=$PWD/ndk" >> $GITHUB_ENV
 
     - name: Configure Node.js
       run: |
@@ -41,7 +47,6 @@ jobs:
           --dest-cpu=arm \
           --dest-os=android \
           --cross-compiling \
-          --without-snapshot \
           --openssl-no-asm \
           --without-dtrace \
           --prefix=/output
