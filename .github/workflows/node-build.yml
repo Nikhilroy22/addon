@@ -33,11 +33,8 @@ jobs:
         echo "AR=$TOOLCHAIN/bin/llvm-ar" >> $GITHUB_ENV
         echo "CC=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang" >> $GITHUB_ENV
         echo "CXX=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang++" >> $GITHUB_ENV
-
-        # Android NDK Path Fix (your error)
-        export ANDROID_NDK_ROOT=$PWD/ndk
+        
         echo "ANDROID_NDK_ROOT=$PWD/ndk" >> $GITHUB_ENV
-
         echo "GYP_DEFINES=android_ndk_path=$PWD/ndk" >> $GITHUB_ENV
 
     - name: Configure Node.js
@@ -48,7 +45,9 @@ jobs:
           --dest-os=android \
           --cross-compiling \
           --openssl-no-asm \
-          --without-dtrace \
+          --without-intl \
+          --without-ssl2 \
+          --without-ssl3 \
           --prefix=/output
 
     - name: Build Node.js
