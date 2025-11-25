@@ -1,0 +1,46 @@
+name: Build ARM32 Node.js Addon
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-arm32:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y python3 make g++ gcc libc6-dev-armhf-cross g++-arm-linux-gnueabihf
+
+    - name: Setup npm packages
+      run: npm ci
+
+    - name: Configure Node-gyp for ARM32
+      run: |
+        export CC=arm-linux-gnueabihf-gcc
+        export CXX=arm-linux-gnueabihf-g++
+        node-gyp configure --arch=arm
+
+    - name: Build Addon
+      run: |
+        export CC=arm-linux-gnueabihf-gcc
+        export CXX=arm-linux-gnueabihf-g++
+        node-gyp build
+
+    - name: Upload ARM32 Build
+      uses: actions/upload-artifact@v3
+      with:
+        name: addon-arm32
+        path: build/Release/addon.node
