@@ -1,7 +1,8 @@
 name: Build Node.js Android ARM32
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build:
@@ -11,7 +12,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt update
-        sudo apt install -y python3 g++ make ninja-build unzip pkg-config git
+        sudo apt install -y python3 g++ make ninja-build unzip pkg-config git wget
 
     - name: Clone Node.js source
       run: |
@@ -43,6 +44,12 @@ jobs:
     - name: Configure Node.js
       run: |
         cd node
+        # Export variables in this step so configure sees them
+        export host_os=linux
+        export target_arch=arm
+        export ANDROID_NDK_ROOT=$PWD/../ndk
+        export GYP_DEFINES="host_os=linux target_arch=arm android_ndk_path=$PWD/../ndk"
+
         ./configure \
           --dest-cpu=arm \
           --dest-os=android \
@@ -58,7 +65,7 @@ jobs:
 
     - name: Package result
       run: |
-        mkdir out
+        mkdir -p out
         cp node/out/Release/node out/node-android-arm32
         tar -czf node-android-arm32.tar.gz -C out .
 
