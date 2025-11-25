@@ -1,0 +1,64 @@
+name: Build Node.js Android ARM32
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Install deps
+      run: |
+        sudo apt update
+        sudo apt install -y python3 g++ make ninja-build unzip pkg-config git
+
+    - name: Clone Node.js source
+      run: |
+        # কোন version চাইলে এখানে সেট করুন
+        git clone https://github.com/nodejs/node.git
+        cd node
+        git checkout v20.12.2   # আপনার প্রয়োজন অনুযায়ী পরিবর্তন করুন
+
+    - name: Download Android NDK
+      run: |
+        wget https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+        unzip android-ndk-r26d-linux.zip
+        mv android-ndk-r26d ndk
+
+    - name: Set NDK Toolchain
+      run: |
+        export TOOLCHAIN=$PWD/ndk/toolchains/llvm/prebuilt/linux-x86_64
+        echo "TOOLCHAIN=$TOOLCHAIN" >> $GITHUB_ENV
+        echo "AR=$TOOLCHAIN/bin/llvm-ar" >> $GITHUB_ENV
+        echo "CC=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang" >> $GITHUB_ENV
+        echo "CXX=$TOOLCHAIN/bin/armv7a-linux-androideabi21-clang++" >> $GITHUB_ENV
+
+    - name: Configure Node.js
+      run: |
+        cd node
+        ./configure \
+          --dest-cpu=arm \
+          --dest-os=android \
+          --cross-compiling \
+          --without-snapshot \
+          --openssl-no-asm \
+          --without-dtrace \
+          --prefix=/output
+
+    - name: Build Node.js
+      run: |
+        cd node
+        make -j4
+
+    - name: Package result
+      run: |
+        mkdir out
+        cp node/out/Release/node out/node-android-arm32
+        tar -czf node-android-arm32.tar.gz -C out .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: node-android-arm32
+        path: node-android-arm32.tar.gz

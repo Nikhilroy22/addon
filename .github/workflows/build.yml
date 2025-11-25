@@ -2,7 +2,7 @@ name: Build Android ARM32 Node.js Addon
 
 on:
   push:
-    branches: [main]
+    branches: [mainn]
 
 jobs:
   build-android-arm32:
