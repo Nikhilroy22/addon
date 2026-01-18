@@ -1,17 +1,24 @@
-#include <node.h>
-#include <v8.h>
+#include <napi.h>
+#include <pty.h>
+#include <unistd.h>
 
-void Add(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    v8::Isolate* isolate = args.GetIsolate();
+Napi::Number spawnShell(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
 
-    double a = args[0]->NumberValue(isolate->GetCurrentContext()).FromJust();
-    double b = args[1]->NumberValue(isolate->GetCurrentContext()).FromJust();
+  int masterFd;
+  pid_t pid = forkpty(&masterFd, nullptr, nullptr, nullptr);
 
-    args.GetReturnValue().Set(v8::Number::New(isolate, a + b));
+  if (pid == 0) {
+    execl("/bin/bash", "bash", nullptr);
+    _exit(1);
+  }
+
+  return Napi::Number::New(env, masterFd);
 }
 
-void Initialize(v8::Local<v8::Object> exports) {
-    NODE_SET_METHOD(exports, "add", Add);
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set("spawnShell", Napi::Function::New(env, spawnShell));
+  return exports;
 }
 
-NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
+NODE_API_MODULE(ptyaddon, Init)
