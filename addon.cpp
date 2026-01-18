@@ -1,24 +1,47 @@
 #include <napi.h>
-#include <pty.h>
-#include <unistd.h>
 
-Napi::Number spawnShell(const Napi::CallbackInfo& info) {
-  Napi::Env env = info.Env();
-
-  int masterFd;
-  pid_t pid = forkpty(&masterFd, nullptr, nullptr, nullptr);
-
-  if (pid == 0) {
-    execl("/bin/bash", "bash", nullptr);
-    _exit(1);
-  }
-
-  return Napi::Number::New(env, masterFd);
+// add
+Napi::Number Add(const Napi::CallbackInfo& info) {
+  double a = info[0].As<Napi::Number>();
+  double b = info[1].As<Napi::Number>();
+  return Napi::Number::New(info.Env(), a + b);
 }
 
+// subtract
+Napi::Number Sub(const Napi::CallbackInfo& info) {
+  double a = info[0].As<Napi::Number>();
+  double b = info[1].As<Napi::Number>();
+  return Napi::Number::New(info.Env(), a - b);
+}
+
+// multiply
+Napi::Number Mul(const Napi::CallbackInfo& info) {
+  double a = info[0].As<Napi::Number>();
+  double b = info[1].As<Napi::Number>();
+  return Napi::Number::New(info.Env(), a * b);
+}
+
+// divide
+Napi::Number Div(const Napi::CallbackInfo& info) {
+  double a = info[0].As<Napi::Number>();
+  double b = info[1].As<Napi::Number>();
+
+  if (b == 0) {
+    Napi::TypeError::New(info.Env(), "Division by zero")
+      .ThrowAsJavaScriptException();
+    return Napi::Number::New(info.Env(), 0);
+  }
+
+  return Napi::Number::New(info.Env(), a / b);
+}
+
+// init
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  exports.Set("spawnShell", Napi::Function::New(env, spawnShell));
+  exports.Set("add", Napi::Function::New(env, Add));
+  exports.Set("sub", Napi::Function::New(env, Sub));
+  exports.Set("mul", Napi::Function::New(env, Mul));
+  exports.Set("div", Napi::Function::New(env, Div));
   return exports;
 }
 
-NODE_API_MODULE(ptyaddon, Init)
+NODE_API_MODULE(calculator, Init)
