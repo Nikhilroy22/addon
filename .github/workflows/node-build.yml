@@ -1,8 +1,7 @@
 name: Build Node.js Android ARM32
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:

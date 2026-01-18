@@ -1,7 +1,8 @@
 name: Build Android ARM32 Node.js Addon
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build-android-arm32:
